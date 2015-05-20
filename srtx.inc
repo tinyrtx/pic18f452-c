@@ -23,11 +23,14 @@
 ;   15Aug14  SHiggins@tinyRTX.com  Added SRTX_ComputedBraRCall and SRTX_ComputedGotoCall.
 ;   25Aug14  SHiggins@tinyRTX.com  Removed SRTX_Init (replaced by main in srtx.c).
 ;								   Removed SRTX_ComputedBraRCall and GotoCall (moved to sutl.inc).
+;   14May15 Stephen_Higgins@KairosAutonomi.com  
+;               Add SRTX_Sched_Cnt_TaskSIO.
 ;
 ;*******************************************************************************
         NOLIST
 ;
         EXTERN      SRTX_Sched_Cnt_TaskADC
         EXTERN      SRTX_Sched_Cnt_TaskI2C
+        EXTERN      SRTX_Sched_Cnt_TaskSIO
 ;
         EXTERN	    SRTX_Scheduler

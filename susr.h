@@ -18,10 +18,12 @@
 // copying.txt) along with tinyRTX.  If not, see <http://www.gnu.org/licenses/>.
 //
 // Revision history:
-//   31Oct03  SHiggins@tinyRTX.com  Created from scratch.
-//   30Jul14  SHiggins@tinyRTX.com  Reduce from 4 tasks to 3 to reduce stack needs.
-//   25Aug14  SHiggins@tinyRTX.com  Create susr.h from susr.inc to use in srtx.c.
-//	 03Sep14  SHiggins@tinyRTX.com  Add SUSR_ISR_I2C().
+//  31Oct03 SHiggins@tinyRTX.com  Created from scratch.
+//  30Jul14 SHiggins@tinyRTX.com  Reduce from 4 tasks to 3 to reduce stack needs.
+//  25Aug14 SHiggins@tinyRTX.com  Create susr.h from susr.inc to use in srtx.c.
+//	03Sep14 SHiggins@tinyRTX.com  Add SUSR_ISR_I2C().
+//	14May15 Stephen_Higgins@KairosAutonomi.com  
+//              Add SRTX_Sched_Cnt_TaskSIO.
 //
 //*******************************************************************************
 extern	void	SUSR_POR_PhaseA(void);
@@ -32,5 +34,6 @@ extern	void	SUSR_Task2(void);
 extern	void	SUSR_Task3(void);
 extern	void	SUSR_TaskADC(void);
 extern	void	SUSR_TaskI2C(void);
+extern	void	SUSR_TaskSIO(void);
 extern	void	SUSR_ISR_I2C(void);
 extern	void	SUSR_TaskI2C_MsgDone(void);

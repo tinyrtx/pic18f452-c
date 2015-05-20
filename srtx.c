@@ -18,21 +18,23 @@
 // copying.txt) along with tinyRTX.  If not, see <http://www.gnu.org/licenses/>.
 //
 // Revision history:
-//   16Oct03 SHiggins@tinyRTX.com	Created from scratch.
+//   16Oct03 SHiggins@tinyRTX.com   Created from scratch.
 //   30Jul14 SHiggins@tinyRTX.com   Reduce from 4 tasks to 3 to reduce stack needs.
 //   12Aug14 SHiggins@tinyRTX.com   Converted from PIC16877 to PIC18F452.
 //   15Aug14 SHiggins@tinyRTX.com   Added SRTX_ComputedBraRCall and SRTX_ComputedGotoCall.
 //   25Aug14 SHiggins@tinyRTX.com   Convert from PIC18 Assembler to C18 C sections.
-//									Move jump table routines to new SUTL.asm.
-//									SRTX_Init() and SRTX_Dispatcher() combined into main().
+//                                  Move jump table routines to new SUTL.asm.
+//                                  SRTX_Init() and SRTX_Dispatcher() combined into main().
+//  14May15 Stephen_Higgins@KairosAutonomi.com  
+//              Add SRTX_Sched_Cnt_TaskSIO.
 //
 //*******************************************************************************
 
 #include    "srtxuser.h"
-#include	"susr.h"
-#include	"strc.h"
+#include    "susr.h"
+#include    "strc.h"
 
-extern void SRTX_Scheduler( void );	// Needed to allow main() to call SRTX_Scheduler().
+extern void SRTX_Scheduler( void ); // Needed to allow main() to call SRTX_Scheduler().
 
 //*******************************************************************************
 //
@@ -40,7 +42,7 @@ extern void SRTX_Scheduler( void );	// Needed to allow main() to call SRTX_Sched
 //
 // Task timer counters track remaining SRTX-timer events before each task is scheduled.
 
-#pragma	udata	SRTX_UdataSec
+#pragma udata   SRTX_UdataSec
 
 ram char SRTX_Timer_Cnt_Task1;
 ram char SRTX_Timer_Cnt_Task2;
@@ -56,16 +58,17 @@ volatile ram char SRTX_Sched_Cnt_Task1;
 volatile ram char SRTX_Sched_Cnt_Task2;
 volatile ram char SRTX_Sched_Cnt_Task3;
 
-// In cases of completing ADC or I2C in tasks, declare their task counters.
+// In cases of completing ADC, I2C, SIO in tasks, declare their task counters.
 
 volatile ram char SRTX_Sched_Cnt_TaskADC;
 volatile ram char SRTX_Sched_Cnt_TaskI2C;
+volatile ram char SRTX_Sched_Cnt_TaskSIO;
 
 //*******************************************************************************
 //
 // SRTX Services.
 //
-#pragma	code	SRTX_CodeSec
+#pragma code    SRTX_CodeSec
 
 //*******************************************************************************
 //
@@ -94,7 +97,7 @@ volatile ram char SRTX_Sched_Cnt_TaskI2C;
 
 void main (void)
 {
-	SUSR_POR_PhaseA();         // Application time-critical init, no interrupts.
+    SUSR_POR_PhaseA();         // Application time-critical init, no interrupts.
     STRC_Init();               // Trace buffer init.
 
 // Init all the task timebase counters.
@@ -110,10 +113,11 @@ void main (void)
     SRTX_Sched_Cnt_Task3 = 0;
     SRTX_Sched_Cnt_TaskADC = 0;
     SRTX_Sched_Cnt_TaskI2C = 0;
+    SRTX_Sched_Cnt_TaskSIO = 0;
 
-	SRTX_Scheduler();			// Schedule all timebase tasks.
-    SUSR_POR_PhaseB();			// Application non-time critical init.
-    SUSR_Timebase();			// Set up initial timebase interrupt.
+    SRTX_Scheduler();           // Schedule all timebase tasks.
+    SUSR_POR_PhaseB();          // Application non-time critical init.
+    SUSR_Timebase();            // Set up initial timebase interrupt.
 
 // Now drop into SRTX Dispatcher
 //
@@ -126,74 +130,87 @@ void main (void)
 //   No return from this routine.
 //
 // Priority (1 = highest):
-//	1: I2C
-//	2: ADC
-//	3: Task1
-//	4: Task2
-//	5: Task3
+//  1: I2C
+//  2: SIO
+//  3: ADC
+//  4: Task1
+//  5: Task2
+//  6: Task3
 //
 //*******************************************************************************
 
-	while(1)
-	{
-		if( SRTX_Sched_Cnt_TaskI2C > 0 ) 		// If task has been scheduled..
-		{
-			SUSR_TaskI2C();						// ..then invoke the task.
-			SRTX_Sched_Cnt_TaskI2C--;			// Decrement task schedule count.
-			if( SRTX_Sched_Cnt_TaskI2C > 0 )	// If decremented task schedule count not 0..
-			{									// ..then provide a breakpoint location to trap it.
- 				_asm NOP _endasm				// Trap, task was scheduled again before done.
-			}
-		} // if( SRTX_Sched_Cnt_TaskI2C > 0 ).
-		else
-		{
-			if( SRTX_Sched_Cnt_TaskADC > 0 ) 		// If task has been scheduled..
-			{
-				SUSR_TaskADC();						// ..then invoke the task.
-				SRTX_Sched_Cnt_TaskADC--;			// Decrement task schedule count.
-				if( SRTX_Sched_Cnt_TaskADC > 0 )	// If decremented task schedule count not 0..
-				{									// ..then provide a breakpoint location to trap it.
-	 				_asm NOP _endasm				// Trap, task was scheduled again before done.
-				}
-			} // if( SRTX_Sched_Cnt_TaskADC > 0 ).
-			else
-			{
-				if( SRTX_Sched_Cnt_Task1 > 0 ) 			// If task has been scheduled..
-				{
-					SUSR_Task1();						// ..then invoke the task.
-					SRTX_Sched_Cnt_Task1--;				// Decrement task schedule count.
-					if( SRTX_Sched_Cnt_Task1 > 0 )		// If decremented task schedule count not 0..
-					{									// ..then provide a breakpoint location to trap it.
-		 				_asm NOP _endasm				// Trap, task was scheduled again before done.
-					}
-				} // if( SRTX_Sched_Cnt_Task1 > 0 ).
-				else
-				{
-					if( SRTX_Sched_Cnt_Task2 > 0 ) 			// If task has been scheduled..
-					{
-						SUSR_Task2();						// ..then invoke the task.
-						SRTX_Sched_Cnt_Task2--;				// Decrement task schedule count.
-						if( SRTX_Sched_Cnt_Task2 > 0 )		// If decremented task schedule count not 0..
-						{									// ..then provide a breakpoint location to trap it.
-			 				_asm NOP _endasm				// Trap, task was scheduled again before done.
-						}
-					} // if( SRTX_Sched_Cnt_Task2 > 0 ).
-					else
-					{
-						if( SRTX_Sched_Cnt_Task3 > 0 ) 			// If task has been scheduled..
-						{
-							SUSR_Task3();						// ..then invoke the task.
-							SRTX_Sched_Cnt_Task3--;				// Decrement task schedule count.
-							if( SRTX_Sched_Cnt_Task3 > 0 )		// If decremented task schedule count not 0..
-							{									// ..then provide a breakpoint location to trap it.
-				 				_asm NOP _endasm				// Trap, task was scheduled again before done.
-							}
-						} // if( SRTX_Sched_Cnt_Task3 > 0 ).
-					}
-				}
-			}
-		}
-	} // while(1).
+    while(1)
+    {
+        if( SRTX_Sched_Cnt_TaskI2C > 0 )        // If task has been scheduled..
+        {
+            SUSR_TaskI2C();                     // ..then invoke the task.
+            SRTX_Sched_Cnt_TaskI2C--;           // Decrement task schedule count.
+            if( SRTX_Sched_Cnt_TaskI2C > 0 )    // If decremented task schedule count not 0..
+            {                                   // ..then provide a breakpoint location to trap it.
+                _asm NOP _endasm                // Trap, task was scheduled again before done.
+            }
+        } // if( SRTX_Sched_Cnt_TaskI2C > 0 ).
+        else
+        {
+        if( SRTX_Sched_Cnt_TaskSIO > 0 )        // If task has been scheduled..
+        {
+            SUSR_TaskSIO_MsgRcvd();             // ..then invoke the task.
+            SRTX_Sched_Cnt_TaskSIO--;           // Decrement task schedule count.
+            if( SRTX_Sched_Cnt_TaskSIO > 0 )    // If decremented task schedule count not 0..
+            {                                   // ..then provide a breakpoint location to trap it.
+                _asm NOP _endasm                // Trap, task was scheduled again before done.
+            }
+        } // if( SRTX_Sched_Cnt_TaskSIO > 0 ).
+        else
+        {
+        if( SRTX_Sched_Cnt_TaskADC > 0 )        // If task has been scheduled..
+        {
+            SUSR_TaskADC();                     // ..then invoke the task.
+            SRTX_Sched_Cnt_TaskADC--;           // Decrement task schedule count.
+            if( SRTX_Sched_Cnt_TaskADC > 0 )    // If decremented task schedule count not 0..
+            {                                   // ..then provide a breakpoint location to trap it.
+                _asm NOP _endasm                // Trap, task was scheduled again before done.
+            }
+        } // if( SRTX_Sched_Cnt_TaskADC > 0 ).
+        else
+        {
+        if( SRTX_Sched_Cnt_Task1 > 0 )          // If task has been scheduled..
+        {
+            SUSR_Task1();                       // ..then invoke the task.
+            SRTX_Sched_Cnt_Task1--;             // Decrement task schedule count.
+            if( SRTX_Sched_Cnt_Task1 > 0 )      // If decremented task schedule count not 0..
+            {                                   // ..then provide a breakpoint location to trap it.
+                _asm NOP _endasm                // Trap, task was scheduled again before done.
+            }
+        } // if( SRTX_Sched_Cnt_Task1 > 0 ).
+        else
+        {
+        if( SRTX_Sched_Cnt_Task2 > 0 )          // If task has been scheduled..
+        {
+            SUSR_Task2();                       // ..then invoke the task.
+            SRTX_Sched_Cnt_Task2--;             // Decrement task schedule count.
+            if( SRTX_Sched_Cnt_Task2 > 0 )      // If decremented task schedule count not 0..
+            {                                   // ..then provide a breakpoint location to trap it.
+                _asm NOP _endasm                // Trap, task was scheduled again before done.
+            }
+        } // if( SRTX_Sched_Cnt_Task2 > 0 ).
+        else
+        {
+        if( SRTX_Sched_Cnt_Task3 > 0 )          // If task has been scheduled..
+        {
+            SUSR_Task3();                       // ..then invoke the task.
+            SRTX_Sched_Cnt_Task3--;             // Decrement task schedule count.
+            if( SRTX_Sched_Cnt_Task3 > 0 )      // If decremented task schedule count not 0..
+            {                                   // ..then provide a breakpoint location to trap it.
+                _asm NOP _endasm                // Trap, task was scheduled again before done.
+            }
+        } // if( SRTX_Sched_Cnt_Task3 > 0 ).
+        } // if( SRTX_Sched_Cnt_Task2 > 0 ).
+        } // if( SRTX_Sched_Cnt_Task1 > 0 ).
+        } // if( SRTX_Sched_Cnt_TaskADC > 0 ).
+        } // if( SRTX_Sched_Cnt_TaskSIO > 0 ).
+        } // if( SRTX_Sched_Cnt_TaskI2C > 0 ).
+    } // while(1).
 }
 
 //*******************************************************************************
@@ -202,32 +219,32 @@ void main (void)
 //   Arrives here with each timebase event.
 //   Decrements each task timer.
 //   If task timer has expired, reloads timer and schedules task by incrementing
-//		task schedule count (no rolloever, max count at 0xFF).
+//      task schedule count (no rolloever, max count at 0xFF).
 //
 //*******************************************************************************
 
 void SRTX_Scheduler( void )
 {
-	if( --SRTX_Timer_Cnt_Task1 == 0)		// Decrement task 1 timer count, if expires then...
-	{
-    	SRTX_Timer_Cnt_Task1 = SRTX_CNT_RELOAD_TASK1;  	// ..then reload timer count.
-		if( ++SRTX_Sched_Cnt_Task1 == 0)				// Increment task schedule count.
-			--SRTX_Sched_Cnt_Task1;						// Max it at 0xFF if it rolls over.
-	}
+    if( --SRTX_Timer_Cnt_Task1 == 0)        // Decrement task 1 timer count, if expires then...
+    {
+        SRTX_Timer_Cnt_Task1 = SRTX_CNT_RELOAD_TASK1;   // ..then reload timer count.
+        if( ++SRTX_Sched_Cnt_Task1 == 0)                // Increment task schedule count.
+            --SRTX_Sched_Cnt_Task1;                     // Max it at 0xFF if it rolls over.
+    }
 
-	if( --SRTX_Timer_Cnt_Task2 == 0)		// Decrement task 2 timer count, if expires then...
-	{
-    	SRTX_Timer_Cnt_Task2 = SRTX_CNT_RELOAD_TASK2;  	// ..then reload timer count.
-		if( ++SRTX_Sched_Cnt_Task2 == 0)				// Increment task schedule count.
-			--SRTX_Sched_Cnt_Task2;						// Max it at 0xFF if it rolls over.
-	}
+    if( --SRTX_Timer_Cnt_Task2 == 0)        // Decrement task 2 timer count, if expires then...
+    {
+        SRTX_Timer_Cnt_Task2 = SRTX_CNT_RELOAD_TASK2;   // ..then reload timer count.
+        if( ++SRTX_Sched_Cnt_Task2 == 0)                // Increment task schedule count.
+            --SRTX_Sched_Cnt_Task2;                     // Max it at 0xFF if it rolls over.
+    }
 
-	if( --SRTX_Timer_Cnt_Task3 == 0)		// Decrement task 3 timer count, if expires then...
-	{
-    	SRTX_Timer_Cnt_Task3 = SRTX_CNT_RELOAD_TASK3;  	// ..then reload timer count.
-		if( ++SRTX_Sched_Cnt_Task3 == 0)				// Increment task schedule count.
-			--SRTX_Sched_Cnt_Task3;						// Max it at 0xFF if it rolls over.
-	}
+    if( --SRTX_Timer_Cnt_Task3 == 0)        // Decrement task 3 timer count, if expires then...
+    {
+        SRTX_Timer_Cnt_Task3 = SRTX_CNT_RELOAD_TASK3;   // ..then reload timer count.
+        if( ++SRTX_Sched_Cnt_Task3 == 0)                // Increment task schedule count.
+            --SRTX_Sched_Cnt_Task3;                     // Max it at 0xFF if it rolls over.
+    }
 
-	return;
+    return;
 }
