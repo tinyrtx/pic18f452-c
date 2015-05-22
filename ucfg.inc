@@ -22,7 +22,7 @@
 ;   06May15  Stephen_Higgins@KairosAutonomi.com  Created from scratch.
 ;
 ;*******************************************************************************
-		NOLIST
+        NOLIST
 ;
 ;   Define all supported board configurations.
 ;
@@ -32,7 +32,7 @@
 ;
 ;   Select board being used.
 ;
-#define UCFG_BOARD  UCFG_PD2P_2002
+#define UCFG_BOARD  UCFG_PD2P_2010
 ;
 ;   Define all supported processors.
 ;
@@ -46,12 +46,12 @@
 ;    Output message of configuration of board and procesor.
 ;
     IFDEF __18F452
-        #include "p18f452.inc"
+        #include <p18f452.inc>
         #define UCFG_PROC   UCFG_18F452     ; Allows logical expressions.
         MESSG "Processor defined: 18F452"
     ENDIF       
     IFDEF __18F2620
-        #include "p18f2620.inc"
+        #include <p18f2620.inc>
         #define UCFG_PROC   UCFG_18F2620    ; Allows logical expressions.
         MESSG "Processor defined: 18F2620"
     ENDIF       
