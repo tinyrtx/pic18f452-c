@@ -196,7 +196,7 @@ file_036=ssio.inc
 file_037=usio.inc
 file_038=ucfg.h
 file_039=ssio.h
-file_040=C:\KairosSW\tinyRTX PIC18F452\tinyRTX-pic18.lkr
+file_040=tinyRTX-pic18.lkr
 file_041=copying.txt
 file_042=copying.lesser.txt
 [SUITE_INFO]
