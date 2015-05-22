@@ -24,6 +24,8 @@
 ;   03Sep14 SHiggins@tinyRTX.com  Add SUSR_ISR_I2C.
 ;   14May15 Stephen_Higgins@KairosAutonomi.com  
 ;               Add SUSR_TaskSIO_MsgRcvd.
+;   21May15 Stephen_Higgins@KairosAutonomi.com  
+;               Move SUSR_TaskSIO_MsgRcvd from here from .h.
 ;
 ;*******************************************************************************
         NOLIST
@@ -38,6 +40,5 @@
         EXTERN      SUSR_ISR_I2C
         EXTERN      SUSR_TaskI2C
         EXTERN      SUSR_TaskI2C_MsgDone
-        EXTERN      SUSR_TaskSIO_MsgRcvd
 ;
         LIST

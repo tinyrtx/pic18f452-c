@@ -25,6 +25,8 @@
 ;								   Removed SRTX_ComputedBraRCall and GotoCall (moved to sutl.inc).
 ;   14May15 Stephen_Higgins@KairosAutonomi.com  
 ;               Add SRTX_Sched_Cnt_TaskSIO.
+;   20May15 Stephen_Higgins@KairosAutonomi.com  
+;               Remove SRTX_Scheduler.
 ;
 ;*******************************************************************************
         NOLIST
@@ -33,4 +35,4 @@
         EXTERN      SRTX_Sched_Cnt_TaskI2C
         EXTERN      SRTX_Sched_Cnt_TaskSIO
 ;
-        EXTERN	    SRTX_Scheduler
+        LIST

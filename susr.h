@@ -24,6 +24,8 @@
 //	03Sep14 SHiggins@tinyRTX.com  Add SUSR_ISR_I2C().
 //	14May15 Stephen_Higgins@KairosAutonomi.com  
 //              Add SRTX_Sched_Cnt_TaskSIO.
+//	21May15 Stephen_Higgins@KairosAutonomi.com  
+//              Move SRTX_Sched_Cnt_TaskSIO to here from .inc.
 //
 //*******************************************************************************
 extern	void	SUSR_POR_PhaseA(void);
@@ -37,3 +39,4 @@ extern	void	SUSR_TaskI2C(void);
 extern	void	SUSR_TaskSIO(void);
 extern	void	SUSR_ISR_I2C(void);
 extern	void	SUSR_TaskI2C_MsgDone(void);
+extern	void	SUSR_TaskSIO_MsgRcvd(void);

@@ -34,6 +34,8 @@
 ;               Added support for Kairos Autonomi 280B board.
 ;  14May15  Stephen_Higgins@KairosAutonomi.com  
 ;               Substitute #include <ucfg.inc> for <p18f452.inc>.
+;  20May15  Stephen_Higgins@KairosAutonomi.com  
+;               Fix UAPP_Timer1Init by adding terminating return.
 ;
 ;*******************************************************************************
 ;

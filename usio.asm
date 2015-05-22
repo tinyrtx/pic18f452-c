@@ -23,6 +23,8 @@
 ;               Created from ui2c.asm.
 ;   27Apr15 Stephen_Higgins@KairosAutonomi.com
 ;               Added USIO_TxLCDMsgToSIO.
+;   20May15 Stephen_Higgins@KairosAutonomi.com
+;               Fix USIO_UdataSec name.
 ;
 ;*******************************************************************************
 ;
